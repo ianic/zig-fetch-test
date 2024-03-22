@@ -22,7 +22,7 @@
         },
         .zmath = .{
             .url = "https://zig-gamedev-pkgs.ams3.cdn.digitaloceanspaces.com/zmath-0.9.6.tar.gz",
-            .hash = "1220a39d46e96d8ed5ba898159130eb1ca70606ebb6b6b92b3facc7093803e2adf45",
+            .hash = "1220a39d46e96d8ed5ba898159130eb1ca70606ebb6b6b92b3fac7093803e2adf45c",
         },
 
         // some notable zig packages
@@ -30,9 +30,9 @@
             .url = "https://github.com/mitchellh/libxev/archive/4e6781895e4e6c477597c8c2713d36cd82b57d07.tar.gz",
             .hash = "12203f87e00caa6c07c02a748f234a5c0ee2ca5c334ec464e88810d93e7b5495a56f",
         },
+
         .bun = .{
             .url = "https://github.com/oven-sh/bun/archive/4e2d00d052daf82d544d48508c9ad3596845b508.tar.gz",
-            //.url = "git+https://github.com/oven-sh/bun#4e2d00d052daf82d544d48508c9ad3596845b508",
             .hash = "1220e0e69190d544851eb5c0c7a125e9291deb0502638a8c5273128ce347c2f473a5",
         },
         .mach = .{
@@ -41,7 +41,6 @@
         },
         .zls = .{
             .url = "https://github.com/zigtools/zls/archive/9cd661a276c742f2160d5334aa27c3829c679285.tar.gz",
-            //.url = "git+https://github.com/zigtools/zls#9cd661a276c742f2160d5334aa27c3829c679285",
             .hash = "1220e0c70cfe836970797761b4d73841cecf69b9f53a51c8cc97d736e433ecb0f1c1",
         },
         .http_zig = .{
@@ -49,16 +48,45 @@
             .hash = "122086c66ec544ff33eee0a3a3c5f22ce49234ea25dbf821ef6b4524eda5f8d4d07f",
         },
         .jetzig = .{
-            //.url = "https://github.com/jetzig-framework/jetzig/archive/b4937d34a1c9a6ada3d0e120996bbb34c1da2982.tar.gz",
-            .url = "git+https://github.com/jetzig-framework/jetzig#b4937d34a1c9a6ada3d0e120996bbb34c1da2982",
+            .url = "https://github.com/jetzig-framework/jetzig/archive/b4937d34a1c9a6ada3d0e120996bbb34c1da2982.tar.gz",
             .hash = "1220880413b20f8caad7991ff5d027c130df096b36f02527a0cdd6d4624f1256d95f",
         },
-
         // I broke this one with symlink function bug
         .has_symlinks = .{
             .url = "https://github.com/mitchellh/zig-build-macos-sdk/archive/ee70f27c08680307fa35ada92e6b2c36e0ff84c6.tar.gz",
             .hash = "1220b415f529f1c04ed876c2b481e9f8119d353d4e3d4d7c8607ee302d2142e13eca",
         },
+
+        // // git urls for above packages
+        // .git_libxev = .{
+        //     .url = "git+https://github.com/mitchellh/libxev#4e6781895e4e6c477597c8c2713d36cd82b57d07",
+        //     .hash = "12203f87e00caa6c07c02a748f234a5c0ee2ca5c334ec464e88810d93e7b5495a56f",
+        // },
+
+        // .git_bun = .{
+        //     .url = "git+https://github.com/oven-sh/bun#4e2d00d052daf82d544d48508c9ad3596845b508",
+        //     .hash = "1220e0e69190d544851eb5c0c7a125e9291deb0502638a8c5273128ce347c2f473a5",
+        // },
+        // .git_mach = .{
+        //     .url = "git+https://github.com/hexops/mach#d4cd79440ea16bf59156cd57707e5833acb8e1b5",
+        //     .hash = "12204662d0dc8a74270b1b219ad1b41e63568f7ae532a243a5fc38b1a95f58f756ae",
+        // },
+        // .git_zls = .{
+        //     .url = "git+https://github.com/zigtools/zls#9cd661a276c742f2160d5334aa27c3829c679285",
+        //     .hash = "1220e0c70cfe836970797761b4d73841cecf69b9f53a51c8cc97d736e433ecb0f1c1",
+        // },
+        // .git_http_zig = .{
+        //     .url = "git+https://github.com/karlseguin/http.zig#1a695d1487e3f36c914d8248ec7595344e0260e3",
+        //     .hash = "122086c66ec544ff33eee0a3a3c5f22ce49234ea25dbf821ef6b4524eda5f8d4d07f",
+        // },
+        // .git_jetzig = .{
+        //     .url = "git+https://github.com/jetzig-framework/jetzig#b4937d34a1c9a6ada3d0e120996bbb34c1da2982",
+        //     .hash = "1220880413b20f8caad7991ff5d027c130df096b36f02527a0cdd6d4624f1256d95f",
+        // },
+        // .git_has_symlinks = .{
+        //     .url = "git+https://github.com/mitchellh/zig-build-macos-sdk#ee70f27c08680307fa35ada92e6b2c36e0ff84c6",
+        //     .hash = "1220b415f529f1c04ed876c2b481e9f8119d353d4e3d4d7c8607ee302d2142e13eca",
+        // },
 
         // git url
         .git_url = .{
@@ -92,7 +120,6 @@
             .url = "http://10.211.55.26:8000/sample.tar",
             .hash = "1220ff8ca54d7681a6166502facc225a2697113f93b270ebc36f7284785b20500475",
         },
-
         // Same as above but in build.zig.zon all problematic folders are filtered.
         // Just src folder is included.
         .http_sample_src = .{
@@ -100,29 +127,19 @@
             .hash = "1220eb9c520f8a9a4bd0cf2da4fb43004fbf9216ab550118609209d17708ee05fcfd",
         },
 
-        // See `zig fetch --save <url>` for a command-line interface for adding dependencies.
-        //.example = .{
-        //    // When updating this field to a new URL, be sure to delete the corresponding
-        //    // `hash`, otherwise you are communicating that you expect to find the old hash at
-        //    // the new URL.
-        //    .url = "https://example.com/foo.tar.gz",
-        //
-        //    // This is computed from the file contents of the directory of files that is
-        //    // obtained after fetching `url` and applying the inclusion rules given by
-        //    // `paths`.
-        //    //
-        //    // This field is the source of truth; packages do not come from a `url`; they
-        //    // come from a `hash`. `url` is just one of many possible mirrors for how to
-        //    // obtain a package matching this `hash`.
-        //    //
-        //    // Uses the [multihash](https://multiformats.io/multihash/) format.
-        //    .hash = "...",
-        //
-        //    // When this is provided, the package is found in a directory relative to the
-        //    // build root. In this case the package's hash is irrelevant and therefore not
-        //    // computed. This field and `url` are mutually exclusive.
-        //    .path = "foo",
-        //},
+        // from zig issue https://github.com/ziglang/zig/issues/17652
+        .libxml2 = .{
+            .url = "https://github.com/ianprime0509/zig-build-libxml2/archive/4d1b7db156b0e7a19127c652adefdf27799770ab.tar.gz",
+            .hash = "122011b13203141cc965cfe6b070ffb5a8835eb906bb2cfd4650dbc17574e6e36fd5",
+        },
+        .harfbuxx = .{
+            .url = "https://github.com/harfbuzz/harfbuzz/archive/refs/tags/8.2.2.tar.gz",
+            .hash = "1220d27d0e3ddd47705cbe1505076058cb41649336d35ea51369ec8f042c35991e0f",
+        },
+        .zigimg = .{
+            .url = "https://github.com/zigimg/zigimg/archive/40ddb16.tar.gz",
+            .hash = "12208c69b00540fe3f38893800fb6c89a9fe27b4a687de5d0462e498a43db4caeec0",
+        },
     },
 
     // Specifies the set of files and directories that are included in this package.
