@@ -7,7 +7,7 @@ function run {
 }
 
 echo master build
-zig_bin=~/zig/zig/build/stage3/bin/zig
+zig_bin=~/Code/zig/build/stage3/bin/zig
 cache=./zig-global-cache-master
 run
 

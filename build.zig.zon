@@ -95,51 +95,51 @@
         },
         // local file
         .file = .{
-            .url = "file:///home/ianic/zig/issues/fetch/4e6781895e4e6c477597c8c2713d36cd82b57d07.tar.gz",
+            .url = "file:///home/ianic/Code/zig-fetch-test/4e6781895e4e6c477597c8c2713d36cd82b57d07.tar.gz",
             .hash = "12203f87e00caa6c07c02a748f234a5c0ee2ca5c334ec464e88810d93e7b5495a56f",
         },
 
         // This one fails on macos and Windows.
         // It has same file name with different casing.
         // It also has symlinks.
-        .sample = .{
-            .url = "file:///home/ianic/zig/issues/fetch/sample.tar",
-            .hash = "1220ff8ca54d7681a6166502facc225a2697113f93b270ebc36f7284785b20500475",
-        },
+        // .sample = .{
+        //     .url = "file:///home/ianic/zig/issues/fetch/sample.tar",
+        //     .hash = "1220ff8ca54d7681a6166502facc225a2697113f93b270ebc36f7284785b20500475",
+        // },
 
-        // Same as above but in build.zig.zon all problematic folders are filtered.
-        // Just src folder is included.
-        .sample_src = .{
-            .url = "file:///home/ianic/zig/issues/fetch/sample_src.tar",
-            .hash = "1220eb9c520f8a9a4bd0cf2da4fb43004fbf9216ab550118609209d17708ee05fcfd",
-        },
+        // // Same as above but in build.zig.zon all problematic folders are filtered.
+        // // Just src folder is included.
+        // .sample_src = .{
+        //     .url = "file:///home/ianic/zig/issues/fetch/sample_src.tar",
+        //     .hash = "1220eb9c520f8a9a4bd0cf2da4fb43004fbf9216ab550118609209d17708ee05fcfd",
+        // },
 
         // Same as above two but start server first (just an example with my IP)
         // python3 -m http.server -b 10.211.55.26
-        .http_sample = .{
-            .url = "http://10.211.55.26:8000/sample.tar",
-            .hash = "1220ff8ca54d7681a6166502facc225a2697113f93b270ebc36f7284785b20500475",
-        },
-        // Same as above but in build.zig.zon all problematic folders are filtered.
-        // Just src folder is included.
-        .http_sample_src = .{
-            .url = "http://10.211.55.26:8000/sample_src.tar",
-            .hash = "1220eb9c520f8a9a4bd0cf2da4fb43004fbf9216ab550118609209d17708ee05fcfd",
-        },
+        // .http_sample = .{
+        //     .url = "http://10.211.55.26:8000/sample.tar",
+        //     .hash = "1220ff8ca54d7681a6166502facc225a2697113f93b270ebc36f7284785b20500475",
+        // },
+        // // Same as above but in build.zig.zon all problematic folders are filtered.
+        // // Just src folder is included.
+        // .http_sample_src = .{
+        //     .url = "http://10.211.55.26:8000/sample_src.tar",
+        //     .hash = "1220eb9c520f8a9a4bd0cf2da4fb43004fbf9216ab550118609209d17708ee05fcfd",
+        // },
 
-        // from zig issue https://github.com/ziglang/zig/issues/17652
-        .libxml2 = .{
-            .url = "https://github.com/ianprime0509/zig-build-libxml2/archive/4d1b7db156b0e7a19127c652adefdf27799770ab.tar.gz",
-            .hash = "122011b13203141cc965cfe6b070ffb5a8835eb906bb2cfd4650dbc17574e6e36fd5",
-        },
-        .harfbuxx = .{
-            .url = "https://github.com/harfbuzz/harfbuzz/archive/refs/tags/8.2.2.tar.gz",
-            .hash = "1220d27d0e3ddd47705cbe1505076058cb41649336d35ea51369ec8f042c35991e0f",
-        },
-        .zigimg = .{
-            .url = "https://github.com/zigimg/zigimg/archive/40ddb16.tar.gz",
-            .hash = "12208c69b00540fe3f38893800fb6c89a9fe27b4a687de5d0462e498a43db4caeec0",
-        },
+        // // from zig issue https://github.com/ziglang/zig/issues/17652
+        // .libxml2 = .{
+        //     .url = "https://github.com/ianprime0509/zig-build-libxml2/archive/4d1b7db156b0e7a19127c652adefdf27799770ab.tar.gz",
+        //     .hash = "122011b13203141cc965cfe6b070ffb5a8835eb906bb2cfd4650dbc17574e6e36fd5",
+        // },
+        // .harfbuxx = .{
+        //     .url = "https://github.com/harfbuzz/harfbuzz/archive/refs/tags/8.2.2.tar.gz",
+        //     .hash = "1220d27d0e3ddd47705cbe1505076058cb41649336d35ea51369ec8f042c35991e0f",
+        // },
+        // .zigimg = .{
+        //     .url = "https://github.com/zigimg/zigimg/archive/40ddb16.tar.gz",
+        //     .hash = "12208c69b00540fe3f38893800fb6c89a9fe27b4a687de5d0462e498a43db4caeec0",
+        // },
     },
 
     // Specifies the set of files and directories that are included in this package.
