@@ -6,7 +6,7 @@ function run {
 	$zig_bin build --global-cache-dir $cache
 }
 
-zig_bin=${1:-~/Code/zig/build/stage3/bin/zig}
+zig_bin=${1:-../zig/build/stage3/bin/zig}
 
 echo master build $zig_bin
 cache=./zig-global-cache-master
