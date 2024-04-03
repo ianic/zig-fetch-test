@@ -1,24 +1,246 @@
 const std = @import("std");
+const Package = @import("zig-src/Package.zig");
+const Fetch = Package.Fetch;
+const ThreadPool = std.Thread.Pool;
+const Cache = std.Build.Cache;
+const fs = std.fs;
 
-pub fn main() !void {
-    // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+pub fn main() !void {}
 
-    // stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+// Builds Fetch with required dependencies, clears dependencies on deinit().
+const TestFetchBuilder = struct {
+    thread_pool: ThreadPool,
+    http_client: std.http.Client,
+    global_cache_directory: Cache.Directory,
+    progress: std.Progress,
+    job_queue: Fetch.JobQueue,
+    fetch: Fetch,
 
-    try stdout.print("Run `zig build test` to run the tests.\n", .{});
+    fn build(
+        self: *TestFetchBuilder,
+        allocator: std.mem.Allocator,
+        cache_parent_dir: std.fs.Dir,
+        path_or_url: []const u8,
+    ) !*Fetch {
+        const cache_dir = try cache_parent_dir.makeOpenPath("zig-global-cache", .{});
 
-    try bw.flush(); // don't forget to flush!
+        try self.thread_pool.init(.{ .allocator = allocator });
+        self.http_client = .{ .allocator = allocator };
+        self.global_cache_directory = .{ .handle = cache_dir, .path = null };
+
+        self.progress = .{ .dont_print_on_dumb = true };
+
+        self.job_queue = .{
+            .http_client = &self.http_client,
+            .thread_pool = &self.thread_pool,
+            .global_cache = self.global_cache_directory,
+            .recursive = false,
+            .read_only = false,
+            .debug_hash = false,
+            .work_around_btrfs_bug = false,
+        };
+
+        self.fetch = .{
+            .arena = std.heap.ArenaAllocator.init(allocator),
+            .location = .{ .path_or_url = path_or_url },
+            .location_tok = 0,
+            .hash_tok = 0,
+            .name_tok = 0,
+            .lazy_status = .eager,
+            .parent_package_root = Cache.Path{ .root_dir = undefined },
+            .parent_manifest_ast = null,
+            .prog_node = self.progress.start("Fetch", 0),
+            .job_queue = &self.job_queue,
+            .omit_missing_hash_error = true,
+            .allow_missing_paths_field = false,
+
+            .package_root = undefined,
+            .error_bundle = undefined,
+            .manifest = null,
+            .manifest_ast = undefined,
+            .actual_hash = undefined,
+            .has_build_zig = false,
+            .oom_flag = false,
+            .module = null,
+        };
+        return &self.fetch;
+    }
+
+    fn deinit(self: *TestFetchBuilder) void {
+        self.fetch.deinit();
+        self.job_queue.deinit();
+        self.fetch.prog_node.end();
+        self.global_cache_directory.handle.close();
+        self.http_client.deinit();
+        self.thread_pool.deinit();
+    }
+
+    fn packageDir(self: *TestFetchBuilder) !fs.Dir {
+        const root = self.fetch.package_root;
+        return try root.root_dir.handle.openDir(root.sub_path, .{ .iterate = true });
+    }
+
+    // Test helper, asserts thet package dir constains expected_files.
+    // expected_files must be sorted.
+    fn expectPackageFiles(self: *TestFetchBuilder, expected_files: []const []const u8) !void {
+        var package_dir = try self.packageDir();
+        defer package_dir.close();
+
+        var actual_files: std.ArrayListUnmanaged([]u8) = .{};
+        defer actual_files.deinit(std.testing.allocator);
+        defer for (actual_files.items) |file| std.testing.allocator.free(file);
+        var walker = try package_dir.walk(std.testing.allocator);
+        defer walker.deinit();
+        while (try walker.next()) |entry| {
+            if (entry.kind != .file) continue;
+            // std.debug.print("{s}\n", .{entry.path});
+            const path = try std.testing.allocator.dupe(u8, entry.path);
+            errdefer std.testing.allocator.free(path);
+            std.mem.replaceScalar(u8, path, std.fs.path.sep, '/');
+            try actual_files.append(std.testing.allocator, path);
+        }
+        std.mem.sortUnstable([]u8, actual_files.items, {}, struct {
+            fn lessThan(_: void, a: []u8, b: []u8) bool {
+                return std.mem.lessThan(u8, a, b);
+            }
+        }.lessThan);
+
+        try std.testing.expectEqual(expected_files.len, actual_files.items.len);
+        for (expected_files, 0..) |file_name, i| {
+            try std.testing.expectEqualStrings(file_name, actual_files.items[i]);
+        }
+        try std.testing.expectEqualDeep(expected_files, actual_files.items);
+    }
+
+    // Test helper, asserts that fetch has failed with `msg` error message.
+    fn expectFetchErrors(self: *TestFetchBuilder, notes_len: usize, msg: []const u8) !void {
+        var errors = try self.fetch.error_bundle.toOwnedBundle("");
+        defer errors.deinit(std.testing.allocator);
+
+        const em = errors.getErrorMessage(errors.getMessages()[0]);
+        try std.testing.expectEqual(1, em.count);
+        if (notes_len > 0) {
+            try std.testing.expectEqual(notes_len, em.notes_len);
+        }
+        var al = std.ArrayList(u8).init(std.testing.allocator);
+        defer al.deinit();
+        try errors.renderToWriter(.{ .ttyconf = .no_color }, al.writer());
+        try std.testing.expectEqualStrings(msg, al.items);
+    }
+};
+
+// Using test cases from: https://github.com/ianprime0509/pathological-packages
+// repository. Depends on existence of the FAT32 file system at /tmp/fat32.mnt
+// (look at the fat32TmpDir function below how to create it). If that folder is
+// not found test will be skipped. Folder is in FAT32 file system because it is
+// case insensitive and and does not support symlinks.
+test "pathological packages" {
+    const gpa = std.testing.allocator;
+    var buf: [128]u8 = undefined;
+
+    const urls: []const []const u8 = &.{
+        "https://github.com/ianprime0509/pathological-packages/archive/{s}.tar.gz",
+        "git+https://github.com/ianprime0509/pathological-packages#{s}",
+    };
+    const branches: []const []const u8 = &.{
+        "excluded-case-collisions",
+        "excluded-symlinks",
+        "included-case-collisions",
+        "included-symlinks",
+    };
+
+    // Expected fetched package files or error message for each combination of url/branch.
+    const expected = [_]struct {
+        files: []const []const u8 = &.{},
+        err_msg: []const u8 = "",
+    }{
+        // tar
+        .{ .files = &.{ "build.zig", "build.zig.zon" } },
+        .{ .files = &.{ "build.zig", "build.zig.zon", "main" } },
+        .{ .err_msg =
+        \\error: unable to unpack tarball
+        \\    note: unable to create file 'main': PathAlreadyExists
+        \\    note: unable to create file 'subdir/main': PathAlreadyExists
+        \\
+        },
+        .{ .err_msg =
+        \\error: unable to unpack tarball
+        \\    note: unable to create symlink from 'link' to 'main': AccessDenied
+        \\    note: unable to create symlink from 'subdir/link' to 'main': AccessDenied
+        \\
+        },
+        // git
+        .{ .files = &.{ "build.zig", "build.zig.zon" } },
+        .{ .files = &.{ "build.zig", "build.zig.zon", "main" } },
+        .{ .err_msg =
+        \\error: unable to unpack packfile
+        \\    note: unable to create file 'main': PathAlreadyExists
+        \\    note: unable to create file 'subdir/main': PathAlreadyExists
+        \\
+        },
+        .{ .err_msg =
+        \\error: unable to unpack packfile
+        \\    note: unable to create symlink from 'link' to 'main': AccessDenied
+        \\    note: unable to create symlink from 'subdir/link' to 'main': AccessDenied
+        \\
+        },
+    };
+
+    var expected_no: usize = 0;
+    inline for (urls) |url_fmt| {
+        var tmp = try fat32TmpDir();
+        defer tmp.cleanup();
+
+        for (branches) |branch| {
+            defer expected_no += 1;
+            const url = try std.fmt.bufPrint(&buf, url_fmt, .{branch});
+            // std.debug.print("fetching url: {s}\n", .{url});
+
+            var fb: TestFetchBuilder = undefined;
+            var fetch = try fb.build(gpa, tmp.dir, url);
+            defer fb.deinit();
+
+            const ex = expected[expected_no];
+            if (ex.err_msg.len > 0) {
+                try std.testing.expectError(error.FetchFailed, fetch.run());
+                try fb.expectFetchErrors(0, ex.err_msg);
+            } else {
+                try fetch.run();
+                try fb.expectPackageFiles(ex.files);
+            }
+        }
+    }
 }
 
-test "simple test" {
-    var list = std.ArrayList(i32).init(std.testing.allocator);
-    defer list.deinit(); // try commenting this out and see if zig detects the memory leak!
-    try list.append(42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
+// Using logic from std.testing.tmpDir() to make temporary directory at specific
+// location.
+//
+// This assumes FAT32 file system in /tmp/fat32.mnt folder,
+// created with something like this:
+// $ cd /tmp && fallocate -l 1M fat32.fs && mkfs.fat -F32 fat32.fs &&  mkdir fat32.mnt && sudo mount -o rw,umask=0000 fat32.fs fat32.mnt
+//
+// To remove that folder:
+// $ cd /tmp && sudo umount fat32.mnt && rm -rf fat32.mnt fat32.fs
+//
+pub fn fat32TmpDir() !std.testing.TmpDir {
+    const fat32fs_path = "/tmp/fat32.mnt/";
+
+    const random_bytes_count = 12;
+    var random_bytes: [random_bytes_count]u8 = undefined;
+    std.crypto.random.bytes(&random_bytes);
+    var sub_path: [std.fs.base64_encoder.calcSize(random_bytes_count)]u8 = undefined;
+    _ = std.fs.base64_encoder.encode(&sub_path, &random_bytes);
+
+    const parent_dir = std.fs.openDirAbsolute(fat32fs_path, .{}) catch |err| switch (err) {
+        error.FileNotFound => return error.SkipZigTest,
+        else => return err,
+    };
+    const dir = parent_dir.makeOpenPath(&sub_path, .{}) catch
+        @panic("unable to make tmp dir for testing: unable to make and open the tmp dir");
+
+    return .{
+        .dir = dir,
+        .parent_dir = parent_dir,
+        .sub_path = sub_path,
+    };
 }
