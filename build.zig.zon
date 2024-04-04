@@ -15,7 +15,7 @@
     // Once all dependencies are fetched, `zig build` no longer requires
     // internet connectivity.
     .dependencies = .{
-        // This two still fail with BadFileName
+        // This two don't have root folder
         .chromium = .{
             .url = "https://chromium.googlesource.com/chromium/tools/depot_tools.git/+archive/7b8f3503d64cf530cff5f4e9e88e3e80e7529b95.tar.gz",
             .hash = "1220839b3c84b29607f0e8a985aefaa30e765f73b126e9063f482a88c4a359a1ef85",

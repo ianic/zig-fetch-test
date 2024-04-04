@@ -4,6 +4,8 @@ const Fetch = Package.Fetch;
 const ThreadPool = std.Thread.Pool;
 const Cache = std.Build.Cache;
 const fs = std.fs;
+const Manifest = Package.Manifest;
+const testing = std.testing;
 
 pub fn main() !void {}
 
@@ -47,7 +49,10 @@ const TestFetchBuilder = struct {
             .hash_tok = 0,
             .name_tok = 0,
             .lazy_status = .eager,
-            .parent_package_root = Cache.Path{ .root_dir = undefined },
+            .parent_package_root = Cache.Path{ .root_dir = Cache.Directory{
+                .handle = std.fs.cwd(),
+                .path = null,
+            } },
             .parent_manifest_ast = null,
             .prog_node = self.progress.start("Fetch", 0),
             .job_queue = &self.job_queue,
@@ -243,4 +248,58 @@ pub fn fat32TmpDir() !std.testing.TmpDir {
         .parent_dir = parent_dir,
         .sub_path = sub_path,
     };
+}
+
+test "fetch build.zig.zon" {
+    try fetchManifest("build.zig.zon");
+}
+
+test "fetch git_packages.zig.zon" {
+    if (true) return error.SkipZigTest;
+    try fetchManifest("git_packages.zig.zon");
+}
+
+fn fetchManifest(manifest_name: []const u8) !void {
+    const gpa = testing.allocator;
+    const build_zig_zon = try std.fs.cwd().readFileAllocOptions(
+        gpa,
+        manifest_name,
+        Manifest.max_bytes,
+        null,
+        1,
+        0,
+    );
+    defer gpa.free(build_zig_zon);
+
+    var ast = try std.zig.Ast.parse(gpa, build_zig_zon, .zon);
+    defer ast.deinit(gpa);
+
+    try testing.expect(ast.errors.len == 0);
+
+    var manifest = try Manifest.parse(gpa, ast, .{});
+    defer manifest.deinit(gpa);
+
+    try testing.expect(manifest.errors.len == 0);
+    //try testing.expectEqual(15, manifest.dependencies.count());
+
+    var tmp = testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    for (manifest.dependencies.values()) |dep| {
+        var fb: TestFetchBuilder = undefined;
+        const path_or_url = switch (dep.location) {
+            .url => |u| u,
+            .path => |p| p,
+        };
+        std.debug.print("fetch: {s}\n", .{path_or_url});
+
+        var fetch = try fb.build(gpa, tmp.dir, path_or_url);
+        defer fb.deinit();
+        try fetch.run();
+
+        try testing.expectEqualStrings(
+            dep.hash.?,
+            &Manifest.hexDigest(fetch.actual_hash),
+        );
+    }
 }
