@@ -303,3 +303,51 @@ fn fetchManifest(manifest_name: []const u8) !void {
         );
     }
 }
+
+test "set executable bit based on file content" {
+    if (!std.fs.has_executable_bit) return error.SkipZigTest;
+    const gpa = testing.allocator;
+    const path = "assets/executables.tar.gz";
+    // $ tar -tvf executables.tar.gz
+    // drwxrwxr-x        0  executables/
+    // -rwxrwxr-x      170  executables/hello
+    // lrwxrwxrwx        0  executables/hello_ln -> hello
+    // -rw-rw-r--        0  executables/file1
+    // -rw-rw-r--       17  executables/script_with_shebang_without_exec_bit
+    // -rwxrwxr-x        7  executables/script_without_shebang
+    // -rwxrwxr-x       17  executables/script
+
+    var tmp = testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    var fb: TestFetchBuilder = undefined;
+    var fetch = try fb.build(gpa, tmp.dir, path);
+    defer fb.deinit();
+
+    try fetch.run();
+    try testing.expectEqualStrings(
+        "1220fecb4c06a9da8673c87fe8810e15785f1699212f01728eadce094d21effeeef3",
+        &Manifest.hexDigest(fetch.actual_hash),
+    );
+
+    var out = try fb.packageDir();
+    defer out.close();
+    const S = std.posix.S;
+    // expect executable bit not set
+    try testing.expect((try out.statFile("file1")).mode & S.IXUSR == 0);
+    try testing.expect((try out.statFile("script_without_shebang")).mode & S.IXUSR == 0);
+    // expect executable bit set
+    try testing.expect((try out.statFile("hello")).mode & S.IXUSR != 0);
+    try testing.expect((try out.statFile("script")).mode & S.IXUSR != 0);
+    try testing.expect((try out.statFile("script_with_shebang_without_exec_bit")).mode & S.IXUSR != 0);
+    try testing.expect((try out.statFile("hello_ln")).mode & S.IXUSR != 0);
+
+    //
+    // $ ls -al zig-cache/tmp/OCz9ovUcstDjTC_U/zig-global-cache/p/1220fecb4c06a9da8673c87fe8810e15785f1699212f01728eadce094d21effeeef3
+    // -rw-rw-r-- 1     0 Apr   file1
+    // -rwxrwxr-x 1   170 Apr   hello
+    // lrwxrwxrwx 1     5 Apr   hello_ln -> hello
+    // -rwxrwxr-x 1    17 Apr   script
+    // -rw-rw-r-- 1     7 Apr   script_without_shebang
+    // -rwxrwxr-x 1    17 Apr   script_with_shebang_without_exec_bit
+}
