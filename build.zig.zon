@@ -15,6 +15,15 @@
     // Once all dependencies are fetched, `zig build` no longer requires
     // internet connectivity.
     .dependencies = .{
+        .@"zig-yaml" = .{
+            .url = "https://github.com/kubkon/zig-yaml/archive/0daa4534707da77f8bf7032376c96e4719954959.tar.gz",
+            .hash = "122048d8af4b11b51bd355e7e0ca4601a9ca5c6afa93d86abd526ca8ae5a855b0e49",
+        },
+        .@"zig-dis-x86_64" = .{
+            .url = "https://github.com/kubkon/zig-dis-x86_64/archive/41805e06f8f9b758115d3e8b74a0fc7cc04d8538.tar.gz",
+            .hash = "1220bf5eea8a9270666a009d5972896915ed466d7a062e63972ed1a86f1b4fb6ce77",
+        },
+
         // This two don't have root folder
         .chromium = .{
             .url = "https://chromium.googlesource.com/chromium/tools/depot_tools.git/+archive/7b8f3503d64cf530cff5f4e9e88e3e80e7529b95.tar.gz",
@@ -65,37 +74,6 @@
             .hash = "12208c69b00540fe3f38893800fb6c89a9fe27b4a687de5d0462e498a43db4caeec0",
         },
 
-        // // git urls for above packages
-        // .git_libxev = .{
-        //     .url = "git+https://github.com/mitchellh/libxev#4e6781895e4e6c477597c8c2713d36cd82b57d07",
-        //     .hash = "12203f87e00caa6c07c02a748f234a5c0ee2ca5c334ec464e88810d93e7b5495a56f",
-        // },
-
-        // .git_bun = .{
-        //     .url = "git+https://github.com/oven-sh/bun#4e2d00d052daf82d544d48508c9ad3596845b508",
-        //     .hash = "1220e0e69190d544851eb5c0c7a125e9291deb0502638a8c5273128ce347c2f473a5",
-        // },
-        // .git_mach = .{
-        //     .url = "git+https://github.com/hexops/mach#d4cd79440ea16bf59156cd57707e5833acb8e1b5",
-        //     .hash = "12204662d0dc8a74270b1b219ad1b41e63568f7ae532a243a5fc38b1a95f58f756ae",
-        // },
-        // .git_zls = .{
-        //     .url = "git+https://github.com/zigtools/zls#9cd661a276c742f2160d5334aa27c3829c679285",
-        //     .hash = "1220e0c70cfe836970797761b4d73841cecf69b9f53a51c8cc97d736e433ecb0f1c1",
-        // },
-        // .git_http_zig = .{
-        //     .url = "git+https://github.com/karlseguin/http.zig#1a695d1487e3f36c914d8248ec7595344e0260e3",
-        //     .hash = "122086c66ec544ff33eee0a3a3c5f22ce49234ea25dbf821ef6b4524eda5f8d4d07f",
-        // },
-        // .git_jetzig = .{
-        //     .url = "git+https://github.com/jetzig-framework/jetzig#b4937d34a1c9a6ada3d0e120996bbb34c1da2982",
-        //     .hash = "1220880413b20f8caad7991ff5d027c130df096b36f02527a0cdd6d4624f1256d95f",
-        // },
-        // .git_has_symlinks = .{
-        //     .url = "git+https://github.com/mitchellh/zig-build-macos-sdk#ee70f27c08680307fa35ada92e6b2c36e0ff84c6",
-        //     .hash = "1220b415f529f1c04ed876c2b481e9f8119d353d4e3d4d7c8607ee302d2142e13eca",
-        // },
-
         // git url
         .git_url = .{
             .url = "git+https://github.com/ianprime0509/zig-xml#7380d59d50f1cd8460fd748b5f6f179306679e2f",
@@ -118,6 +96,48 @@
         .symlink_case_excluded = .{
             .url = "file:assets/symlink-case-excluded.tar",
             .hash = "1220eb9c520f8a9a4bd0cf2da4fb43004fbf9216ab550118609209d17708ee05fcfd",
+        },
+
+        .any_pointer = .{
+            .url = "https://github.com/MasterQ32/any-pointer/archive/60b236deb8e5f4e53aeefbd31e5d9763bcaf8322.tar.gz",
+            .hash = "1220ee116ee3e225e115f5d93167be6a06683bf1673d29674b64b9fe551548c6a69b",
+        },
+        .icu4zig = .{
+            .url = "https://codeberg.org/linusg/icu4zig/archive/71f4473f01f9e83750d21652cae157f7de3e0c5a.tar.gz",
+            .hash = "122038d3ca3346181b0bc153f057177dd5adc4fd601b1d40820c83ffb2c82bc04561",
+        },
+        .kiesel_runtime = .{
+            // Uncommend for local development:
+            // .path = "../runtime",
+            .url = "https://codeberg.org/kiesel-js/runtime/archive/eabd4772e8993a616fbe42bcc65155f6e3caa916.tar.gz",
+            .hash = "122087a5204dd4b1cb1786b86b708fff8fb166fbb7901d826cb985183bb7673b0fba",
+            .lazy = true,
+        },
+        .libgc = .{
+            .url = "https://github.com/ivmai/bdwgc/archive/4d6cdc072663c1a22379d84acdac8a273ace1bc9.tar.gz",
+            .hash = "1220f14a2b23ea1a9c5c44aee01667273b732778a83e5925a825ab6afffab2ba24ad",
+        },
+        .libregexp = .{
+            .url = "https://codeberg.org/linusg/zig-build-libregexp/archive/594283c5e1a9dbea1ae357e5681077f01a9607fb.tar.gz",
+            .hash = "12201df058b457961514ced84daf38cd8739519a4ee621b4ee229ad8b53fc228fb97",
+        },
+        // Needed for mach-o/getsect.h when building libgc for macOS
+        .macos_sdk = .{
+            .url = "https://github.com/mitchellh/zig-build-macos-sdk/archive/ee70f27c08680307fa35ada92e6b2c36e0ff84c6.tar.gz",
+            .hash = "1220b415f529f1c04ed876c2b481e9f8119d353d4e3d4d7c8607ee302d2142e13eca",
+        },
+        .parser_toolkit = .{
+            .url = "https://github.com/MasterQ32/parser-toolkit/archive/358a028beb32ebb193dadb6f7a954965745892a7.tar.gz",
+            .hash = "122096e52791fd03257d5c6af9421dfa0c8ba763c01ef5a9d4c022903a741cbad13a",
+        },
+        .zig_args = .{
+            .url = "https://github.com/MasterQ32/zig-args/archive/89f18a104d9c13763b90e97d6b4ce133da8a3e2b.tar.gz",
+            .hash = "12203ded54c85878eea7f12744066dcb4397177395ac49a7b2aa365bf6047b623829",
+        },
+        .zigline = .{
+            // FIXME: This points to https://github.com/alimpfard/zigline/pull/16, update once merged
+            .url = "https://github.com/alimpfard/zigline/archive/833140af09546502b2b516d9a3eed91969549d2a.tar.gz",
+            .hash = "1220664821dfacbf338dab67e2923be5d4365eebf65b7c1ca8a94f68a3b874db7459",
         },
     },
 

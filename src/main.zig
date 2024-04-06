@@ -285,17 +285,23 @@ fn fetchManifest(manifest_name: []const u8) !void {
     var tmp = testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    for (manifest.dependencies.values()) |dep| {
+    for (manifest.dependencies.values(), 0..) |dep, i| {
         var fb: TestFetchBuilder = undefined;
         const path_or_url = switch (dep.location) {
             .url => |u| u,
             .path => |p| p,
         };
-        std.debug.print("fetch: {s}\n", .{path_or_url});
+        std.debug.print("fetch {}: {s}\n", .{ i, path_or_url });
 
         var fetch = try fb.build(gpa, tmp.dir, path_or_url);
         defer fb.deinit();
         try fetch.run();
+
+        if (i <= 16) {
+            // guard against: https://github.com/ziglang/zig/issues/19561
+            //                https://github.com/ziglang/zig/issues/19557
+            try testing.expect(fetch.has_build_zig == !(i == 2 or i == 11 or i == 16));
+        }
 
         try testing.expectEqualStrings(
             dep.hash.?,
